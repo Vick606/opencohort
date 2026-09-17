@@ -100,6 +100,13 @@ Free tiers only. No paid services, no subscriptions.
   do not trigger them. He reports back.
 - Database access goes through `getDb()` from `@/db`, not a top-level client. It connects
   lazily so a missing `DATABASE_URL` fails the query rather than crashing `next build`.
+- The database client is created through `getDb()` from `@/db`, never constructed inline.
+- **Auth tables belong to Better Auth.** `user`, `session`, `account`, `verification` are
+  defined by it, not by us. `role` is added to its user via `additionalFields` in
+  `lib/auth.ts`. Our tables reference `user.id` — do not create a parallel users table.
+- `drizzle.config.ts` loads **both** `.env` and `.env.local` (`.env.local` wins). Plain
+  `dotenv/config` does not read `.env.local` — that was a real bug, do not reintroduce it.
+- `npm run db:check` verifies the database connection. Run it before any migration work.
 - On Next 16, `params`, `searchParams`, `cookies()` and `headers()` are **async only** —
   always `await` them. And `middleware.ts` is renamed `proxy.ts` (Node runtime only).
 
