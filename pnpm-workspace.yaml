@@ -1,0 +1,43 @@
+# pnpm configuration for this project.
+#
+# Why this file exists at all in a single-package repo: pnpm 10+ blocks
+# dependency lifecycle scripts as a supply-chain measure, and **pnpm 12 turns
+# that block into a hard failure** rather than a warning:
+#
+#   ERR_PNPM_IGNORED_BUILDS
+#   × installing dependencies
+#   ╰─▶ Ignored build scripts: esbuild@0.18.20, esbuild@0.25.12, ...
+#
+# So `pnpm install` will not complete until every blocked package is decided
+# explicitly here. Verified on pnpm 12.4.2 — this is not optional.
+#
+# The field is `allowBuilds`. Older pnpm 10 projects use `onlyBuiltDependencies`,
+# which pnpm 11 replaced and now silently ignores. If you copy config from an
+# older project and it has no effect, that is why.
+#
+# `true` runs the script, `false` skips it. Both are recorded on purpose: an
+# explicit `false` documents a decision, whereas omitting the package leaves it
+# undecided and the install keeps failing.
+
+allowBuilds:
+  # Arrives via drizzle-kit. Three versions appear in the tree at once
+  # (0.18.20, 0.25.12, 0.28.2) because drizzle-kit's older esbuild-kit chain
+  # pins its own copy — but `allowBuilds` keys on package name, so one entry
+  # covers all three.
+  #
+  # Its postinstall runs `node install.js`, which resolves the platform binary
+  # from the optionalDependency @esbuild/win32-x64 and then executes it to
+  # validate the version. Allowing it is a no-op on a machine where that
+  # optional dependency installed correctly, and it self-heals on a platform
+  # where it is missing instead of failing later inside drizzle-kit.
+  esbuild: true
+
+  # Arrives via eslint-config-next -> eslint-import-resolver-typescript.
+  # Ships prebuilt native binaries as optionalDependencies; its postinstall
+  # (napi-postinstall's checkAndPreparePackage) only verifies that the binding
+  # for the current platform is in place.
+  unrs-resolver: true
+
+# If a Vercel build ever objects to either script running, setting it to false
+# is the safe alternative: both packages get their binary from a platform-
+# specific optionalDependency, so the scripts are not required to lint or build.

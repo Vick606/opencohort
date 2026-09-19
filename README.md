@@ -49,6 +49,7 @@ This list is a design decision, not a backlog.
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router) |
+| Package manager | pnpm |
 | Database | Neon Postgres |
 | ORM | Drizzle ORM + drizzle-kit |
 | Auth | Better Auth |
@@ -65,8 +66,33 @@ Early and actively being built. Contributions aren't open yet — the shape is s
 
 ## Running it locally
 
-Coming once the app boots end to end. This section will be the real test: if a fresh clone
-plus a filled `.env` doesn't start with `npm run dev`, the README is wrong.
+Requires **Node.js 20.9 or newer** and **pnpm**.
+
+```
+pnpm install
+```
+
+Then copy `.env.example` to `.env.local` and fill in `DATABASE_URL` with a Postgres
+connection string (Neon's free tier is what this is built against).
+
+Confirm the connection before doing anything else:
+
+```
+pnpm run db:check
+```
+
+That prints `PASS` or a specific failure. Then:
+
+```
+pnpm dev
+```
+
+The app runs at http://localhost:3000. Note that the UI is still being built — the
+scaffold boots, but the course pages are in progress.
+
+> A note for the curious: `pnpm-workspace.yaml` exists in this single-package repo because
+> pnpm 12 refuses to install until every dependency with a build script is explicitly
+> approved in `allowBuilds`. It is configuration, not a monorepo definition.
 
 ## Licence
 
